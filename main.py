@@ -224,7 +224,7 @@ plt.legend()
 plt.grid(True)
 
 # values to print on the X axis
-plt.xticks(noise_levels) # hoyy
+plt.xticks(noise_levels)
 
 
 # Second graph: RMSE based on the number of ratings
