@@ -27,8 +27,11 @@ leaf_probability = 0.3
 oracle = generate_ratings_matrix(num_users, num_movies, genres, leaf_probability)
 movielens_format_oracle = convert_to_movielens_format(oracle) # rinted values
 
-# Set the oracle to use
+# Method 4 : import an existing dataset with missing ratings
 #df = pd.read_csv("movielens100k.csv")
+
+
+# Set the final dataframe that we will use
 df = movielens_format_oracle
 
 
