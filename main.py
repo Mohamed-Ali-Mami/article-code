@@ -2,6 +2,68 @@ import pandas as pd
 import numpy as np
 from surprise import Dataset, Reader, KNNBasic, KNNWithMeans, KNNBaseline, NMF, SVD, SVDpp, CoClustering, BaselineOnly, accuracy
 import matplotlib.pyplot as plt
+import random
+
+
+# --------------------------------------- DOUDA ---------------------------------- #
+
+# Fonction pour créer un arbre aléatoire avec une probabilité spécifiée pour les feuilles
+def creer_arbre(genres_disponibles, probabilite_feuille=0.5):
+    if not genres_disponibles or random.random() < probabilite_feuille:
+        # Si la liste de genres est vide ou si la probabilité est atteinte, retourne une note aléatoire
+        return random.randint(1, 5)
+
+    # Choix aléatoire d'un genre parmi les genres disponibles
+    genre = random.choice(genres_disponibles)
+    genres_disponibles.remove(genre)
+
+    # Création d'un score aléatoire pour le genre
+    score_genre = round(random.uniform(0, 1), 1)  # Score aléatoire entre 0 et 1 avec un chiffre après la virgule
+
+    # Création du nœud avec le genre choisi et son score
+    arbre = {"genre": genre, "score": score_genre, "branches": {}}
+
+    # Création de deux branches pour chaque nœud
+    for i in range(2):
+        # Choix aléatoire entre une note ou un nouveau nœud
+        if random.random() < probabilite_feuille:
+            # Création d'une note aléatoire entre 1 et 5
+            arbre["branches"][f"Branche {i}"] = random.randint(1, 5)
+        else:
+            # Création d'un nouveau nœud avec deux branches
+            arbre["branches"][f"Branche {i}"] = creer_arbre(genres_disponibles, probabilite_feuille)
+
+    return arbre
+
+
+# Fonction pour calculer le score final de l'arbre
+def calculer_score(arbre):
+    if isinstance(arbre, dict):
+        score_total = 0
+        for i in range(2):
+            score_branche = calculer_score(arbre["branches"][f"Branche {i}"])
+            if i == 0:
+                score_total += (1 - arbre["score"]) * score_branche
+            else:
+                score_total += arbre["score"] * score_branche
+        return score_total
+    else:
+        return arbre
+
+def generer_matrice_scores(n_utilisateurs, n_films, genres, probabilite_feuille):
+    scores_matrice = np.zeros((n_utilisateurs, n_films))  # Initialisation de la matrice de scores
+
+    for u in range(n_utilisateurs):
+        for f in range(n_films):
+            # Générer un arbre aléatoire
+            arbre = creer_arbre(genres.copy(), probabilite_feuille)
+            # Calculer le score final de l'arbre
+            score_final = calculer_score(arbre)
+            # Ajouter le score final à la matrice
+            scores_matrice[u, f] = score_final
+    return scores_matrice
+
+# --------------------------------------- DOUDA ---------------------------------- #
 
 # Generate the complete matrix of ratings (oracle)
 def generate_oracle(num_users,num_movies):
@@ -94,7 +156,6 @@ def calculate_rmse(df1, df2):
 
 
 
-
 # Convert the Oracle to movielens format (user id, movie id, rating)
 def convert_to_movielens_format(oracle):
     # Convert the ratings numpy matrix into pandas dataframe
@@ -165,12 +226,22 @@ def get_model_performance(model, oracle, density_percentage, noise, complete_ora
 
 
 # Oracle settings
-num_users = 1000
-num_movies = 100
+num_users = 943
+num_movies = 1682
+
+
+# Liste de genres
+genres = ["Action", "Comédie", "Drame", "Science-Fiction", "Horreur"]
+
+# Probabilité de tomber sur une feuille (note entre 1 et 5)
+probabilite_feuille = 0.3
+
+scores_matrice = generer_matrice_scores(num_users, num_movies, genres, probabilite_feuille)
+movielens_format_oracle = convert_to_movielens_format(scores_matrice) # rinted values
 
 # Generate a complete oracle
-oracle = generate_oracle(num_users,num_movies)
-movielens_format_oracle = convert_to_movielens_format(oracle) # rinted values
+#oracle = generate_oracle(num_users,num_movies)
+#movielens_format_oracle = convert_to_movielens_format(oracle) # rinted values
 
 
 # Set the oracle to use
@@ -179,9 +250,9 @@ df = movielens_format_oracle
 
 
 # Set the testing parameters
-densities = [0.9]
-noise_levels = [0.0]
-models = ["KNN"]
+densities = [0.9,0.8,0.7]
+noise_levels = [0.0,0.5,1.0]
+models = ["SVD++", "KNN", "SVD (ALS)"]
 
 complete_oracle = 1  # 1 if we have got a complete matrix of ratings and 0 if not.
 
@@ -224,7 +295,7 @@ plt.legend()
 plt.grid(True)
 
 # values to print on the X axis
-plt.xticks(noise_levels)
+plt.xticks(noise_levels)  # Use noise_levels directly as ticks
 
 
 # Second graph: RMSE based on the number of ratings
@@ -234,13 +305,14 @@ for model_name in models:
         df_filtered = df_results[(df_results['model'] == model_name) & (df_results['noise_level'] == noise_level)]
         plt.plot(df_filtered['num_ratings'], df_filtered['rmse'], marker='o', label=f"{model_name}, Noise Level {noise_level}")
 
-plt.xlabel('Training Ratings')
+plt.xlabel('Number of Ratings')
 plt.ylabel('RMSE')
 plt.title('RMSE based on the Number of Ratings')
 plt.legend()
 plt.grid(True)
 
-# values to print on the X axis
-plt.xticks(df_results['num_ratings'], labels=[f"{density*100}% ({num_ratings})" for density, num_ratings in zip(densities, df_results['num_ratings'])])
+# Limiter les valeurs de l'axe x aux densités utilisées
+x_ticks_labels = [f"{density_percentage*100}% ({int(len(df) * density_percentage)})" for density_percentage in densities]
+plt.xticks([int(len(df) * density_percentage) for density_percentage in densities], x_ticks_labels)
 
 plt.show()
