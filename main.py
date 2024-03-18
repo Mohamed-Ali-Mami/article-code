@@ -5,9 +5,9 @@ from preferences_mean import *
 from matrix_factorization import *
 from random_trees import *
 
-# Oracle settings
-num_users = 1000
-num_movies = 100
+# Oracle settings (1,586,126 rating)
+num_users = 943
+num_movies = 1682
 
 # List of the possible genres
 genres = ["Action", "Comédie", "Drame", "Science-Fiction", "Horreur"]
@@ -15,13 +15,17 @@ genres = ["Action", "Comédie", "Drame", "Science-Fiction", "Horreur"]
 # Probability to get a leaf
 leaf_probability = 0.3
 
-scores_matrice = generate_ratings_matrix(num_users, num_movies, genres, leaf_probability)
-movielens_format_oracle = convert_to_movielens_format(scores_matrice) # rinted values
-
-# Generate a complete oracle
-#oracle = generate_oracle(num_users,num_movies)
+# Method 1 : Generate a complete oracle with matrix factorization
+#oracle = generate_factorized_matrix(num_users, num_movies)
 #movielens_format_oracle = convert_to_movielens_format(oracle) # rinted values
 
+# Method 2 : Generate a complete oracle with preferences means
+#oracle = generate_oracle(num_users, num_movies, genres)
+#movielens_format_oracle = convert_to_movielens_format(oracle) # rinted values
+
+# Method 3 : Generate a complete oracle with random trees
+oracle = generate_ratings_matrix(num_users, num_movies, genres, leaf_probability)
+movielens_format_oracle = convert_to_movielens_format(oracle) # rinted values
 
 # Set the oracle to use
 #df = pd.read_csv("movielens100k.csv")
@@ -29,9 +33,9 @@ df = movielens_format_oracle
 
 
 # Set the testing parameters
-densities = [0.8,0.7]
-noise_levels = [0.5,1.0]
-models = ["SVD (ALS)", "KNN"]
+densities = [0.9,0.8,0.7]
+noise_levels = [0.0,0.5,1.0]
+models = ["SVD++","SVD (ALS)", "KNN"]
 
 complete_oracle = 1  # 1 if we have got a complete matrix of ratings and 0 if not.
 
@@ -90,7 +94,7 @@ plt.title('RMSE based on the Number of Ratings')
 plt.legend()
 plt.grid(True)
 
-# Limiter les valeurs de l'axe x aux densités utilisées
+# values to print on the X axis
 x_ticks_labels = [f"{density_percentage*100}% ({int(len(df) * density_percentage)})" for density_percentage in densities]
 plt.xticks([int(len(df) * density_percentage) for density_percentage in densities], x_ticks_labels)
 

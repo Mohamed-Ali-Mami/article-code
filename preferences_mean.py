@@ -1,9 +1,7 @@
 import numpy as np
 
 # Generate the complete matrix of ratings (oracle)
-def generate_oracle(num_users,num_movies):
-  # Create the movie genres categories
-  genres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi"]
+def generate_oracle(num_users,num_movies,genres):
   # Assign preferences to users
   user_prefs = {genre: np.random.uniform(1, 5, num_users) for genre in genres}
   # Assign genres to films (maximum 3)

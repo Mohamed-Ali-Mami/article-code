@@ -1,6 +1,6 @@
 import numpy as np
 
-def create_and_display_matrices(num_users, num_items, rank=2):
+def generate_factorized_matrix(num_users, num_items, rank=2):
 
     # Initialize user (A) and item (B) matrices with random values
     A = np.random.rand(num_users, rank)
