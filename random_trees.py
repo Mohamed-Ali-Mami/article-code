@@ -45,7 +45,6 @@ def calculate_tree_rating(tree):
         return tree
 
 
-
 # Function to generate a matrix containing ratings of users with our tree method
 def generate_ratings_matrix(num_users, num_movies, genres, probabilite_feuille):
     ratings_matrix = np.zeros((num_users, num_movies))  # Initialize the matrix
@@ -61,7 +60,3 @@ def generate_ratings_matrix(num_users, num_movies, genres, probabilite_feuille):
 
     # Return the generated tree
     return ratings_matrix
-
-
-
-

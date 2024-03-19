@@ -1,7 +1,6 @@
 import numpy as np
 
 def generate_factorized_matrix(num_users, num_items, rank=2):
-
     # Initialize user (A) and item (B) matrices with random values
     A = np.random.rand(num_users, rank)
     B = np.random.rand(rank, num_items)
@@ -15,4 +14,3 @@ def generate_factorized_matrix(num_users, num_items, rank=2):
     ratings_matrix = np.rint(scaled_ratings_matrix)  # Round to nearest integer
 
     return ratings_matrix
-

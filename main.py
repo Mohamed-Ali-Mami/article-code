@@ -62,5 +62,5 @@ for model_name in models:
         'noise_level': noise_level,
         'rmse': rmse
         })
-
+# Plot the models performances
 plot_results(results,noise_levels,densities,models,df)

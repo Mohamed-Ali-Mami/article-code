@@ -14,4 +14,5 @@ def generate_oracle(num_users,num_movies,genres):
           user_prefs_for_film = [user_prefs[genre][user] for genre in film_genres_list]
           avg_user_pref = np.mean(user_prefs_for_film)  # Average(Mean) of preferences to each movie genre
           oracle[user, film] = avg_user_pref
+  # Return the generated oracle
   return oracle
