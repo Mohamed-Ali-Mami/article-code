@@ -145,33 +145,43 @@ def get_model_performance(model, oracle, density_percentage, noise, complete_ora
     return rmse
 
 
-def plot_results(df_results, models, densities, noise_levels):
-    # Plot RMSE based on the noise level
-    plt.figure(figsize=(10, 6))
-    for model_name in models:
-        for density_percentage in densities:
-            df_filtered = df_results[(df_results['model'] == model_name) & (df_results['num_ratings'] == int(len(df_results) * density_percentage))]
-            plt.plot(df_filtered['noise_level'], df_filtered['rmse'], marker='o', label=f"{model_name}, {int(len(df_results) * density_percentage)} ratings")
+def plot_results(results,noise_levels,densities,models):
 
-    plt.xlabel('Noise Level')
-    plt.ylabel('RMSE')
-    plt.title('RMSE based on the Noise Level')
-    plt.legend()
-    plt.grid(True)
-    plt.xticks(noise_levels)
-    plt.show()
+  # Convert results into a pandas dataframe
+  df_results = pd.DataFrame(results)
 
-    # Plot RMSE based on the number of ratings
-    plt.figure(figsize=(10, 6))
-    for model_name in models:
-        for noise_level in noise_levels:
-            df_filtered = df_results[(df_results['model'] == model_name) & (df_results['noise_level'] == noise_level)]
-            plt.plot(df_filtered['num_ratings'], df_filtered['rmse'], marker='o', label=f"{model_name}, Noise Level {noise_level}")
+  # First graph: RMSE based on the noise
+  plt.figure(figsize=(10, 6))
+  for model_name in models:
+      for density_percentage in densities:
+          df_filtered = df_results[(df_results['model'] == model_name) & (df_results['num_ratings'] == int(len(df) * density_percentage))]
+          plt.plot(df_filtered['noise_level'], df_filtered['rmse'], marker='o', label=f"{model_name}, {int(len(df) * density_percentage)} ratings")
 
-    plt.xlabel('Training Ratings')
-    plt.ylabel('RMSE')
-    plt.title('RMSE based on the Number of Ratings')
-    plt.legend()
-    plt.grid(True)
-    plt.xticks(df_results['num_ratings'], labels=[f"{density*100}% ({num_ratings})" for density, num_ratings in zip(densities, df_results['num_ratings'])])
-    plt.show()
+  plt.xlabel('Noise Level')
+  plt.ylabel('RMSE')
+  plt.title('RMSE based on the Noise Level')
+  plt.legend()
+  plt.grid(True)
+
+  # values to print on the X axis
+  plt.xticks(noise_levels)  # Use noise_levels directly as ticks
+
+
+  # Second graph: RMSE based on the number of ratings
+  plt.figure(figsize=(10, 6))
+  for model_name in models:
+      for noise_level in noise_levels:
+          df_filtered = df_results[(df_results['model'] == model_name) & (df_results['noise_level'] == noise_level)]
+          plt.plot(df_filtered['num_ratings'], df_filtered['rmse'], marker='o', label=f"{model_name}, Noise Level {noise_level}")
+
+  plt.xlabel('Number of Ratings')
+  plt.ylabel('RMSE')
+  plt.title('RMSE based on the Number of Ratings')
+  plt.legend()
+  plt.grid(True)
+
+  # values to print on the X axis
+  x_ticks_labels = [f"{density_percentage*100}% ({int(len(df) * density_percentage)})" for density_percentage in densities]
+  plt.xticks([int(len(df) * density_percentage) for density_percentage in densities], x_ticks_labels)
+
+  plt.show()
