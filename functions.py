@@ -145,7 +145,7 @@ def get_model_performance(model, oracle, density_percentage, noise, complete_ora
     return rmse
 
 
-def plot_results(results,noise_levels,densities,models):
+def plot_results(results,noise_levels,densities,models,df):
 
   # Convert results into a pandas dataframe
   df_results = pd.DataFrame(results)

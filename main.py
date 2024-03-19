@@ -5,41 +5,42 @@ from matrix_factorization import *
 from random_trees import *
 
 # Oracle settings (1,586,126 rating)
-num_users = 943
-num_movies = 1682
+num_users = 1000
+num_movies = 100
 
 
 # Method 1 : Generate a complete oracle with matrix factorization
 #oracle = generate_factorized_matrix(num_users, num_movies)
 #movielens_format_oracle = convert_to_movielens_format(oracle) # rinted values
+#df = movielens_format_oracle
 #complete_oracle = 1  # 1 if we have got a complete matrix of ratings and 0 if not.
 
 # Method 2 : Generate a complete oracle with preferences means
 #genres = ["Action", "Comédie", "Drame", "Science-Fiction", "Horreur"]
 #oracle = generate_oracle(num_users, num_movies, genres)
 #movielens_format_oracle = convert_to_movielens_format(oracle) # rinted values
+#df = movielens_format_oracle
 #complete_oracle = 1  # 1 if we have got a complete matrix of ratings and 0 if not.
 
 # Method 3 : Generate a complete oracle with random trees
-genres = ["Action", "Comédie", "Drame", "Science-Fiction", "Horreur"]
-leaf_probability = 0.3
-oracle = generate_ratings_matrix(num_users, num_movies, genres, leaf_probability)
-movielens_format_oracle = convert_to_movielens_format(oracle) # rinted values
-complete_oracle = 1  # 1 if we have got a complete matrix of ratings and 0 if not.
+# genres = ["Action", "Comédie", "Drame", "Science-Fiction", "Horreur"]
+#leaf_probability = 0.3
+#oracle = generate_ratings_matrix(num_users, num_movies, genres, leaf_probability)
+#movielens_format_oracle = convert_to_movielens_format(oracle) # rinted values
+#df = movielens_format_oracle
+#complete_oracle = 1  # 1 if we have got a complete matrix of ratings and 0 if not.
 
 # Method 4 : import an existing dataset with missing ratings
-#df = pd.read_csv("movielens100k.csv")
-#complete_oracle = 0  # 1 if we have got a complete matrix of ratings and 0 if not.
-
-
-# Set the final dataframe that we will use
-df = movielens_format_oracle
+df = pd.read_csv("movielens100k.csv")
+complete_oracle = 0  # 1 if we have got a complete matrix of ratings and 0 if not.
 
 
 # Set the testing parameters
 densities = [0.9,0.8,0.7]
 noise_levels = [0.0,0.5,1.0]
-models = ["SVD++","SVD (ALS)", "KNN"]
+models = ["SVD++", "KNN", "SVD (ALS)"]
+
+
 
 # Store the results
 results = []
@@ -62,5 +63,4 @@ for model_name in models:
         'rmse': rmse
         })
 
-
-plot_results(results,noise_levels,densities,models)
+plot_results(results,noise_levels,densities,models,df)
