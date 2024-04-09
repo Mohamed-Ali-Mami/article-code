@@ -124,6 +124,7 @@ def evaluate_model_on_complete_oracle(model, df, training_percentage, noise):
     models_list = combined_bagging_train(model, noisy_trainset, num_models_to_train, training_percentage, epsilon)
     predicted_df = predict_all_ratings_combined_baggings(models_list, testset)
     rmse = calculate_rmse(predicted_df, df)
+    return rmse
 
 # Returns the rmse of each model on a specific configuration of an incomplete dataset
 def evaluate_model_on_uncomplete_oracle(model, df, training_percentage, noise):
