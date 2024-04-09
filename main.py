@@ -52,7 +52,7 @@ for model_name in models:
     print (f"percentage of training ratings : {training_percentage*100}%")
     for noise_level in noise_levels:
       print(f"Noise Level : {noise_level}")
-      rmse = evaluate_model(model_name, df, training_percentage, noise_level, complete_oracle)
+      rmse = get_model_performance(model_name, df, training_percentage, noise_level, complete_oracle)
       num_training_ratings = int(len(df) * training_percentage)
       print (f"RMSE of {model_name} on the oracle of noise {noise_level} , and {training_percentage*100}% = ({num_training_ratings}) ratings is : {rmse:.4f}")
       # Store the results

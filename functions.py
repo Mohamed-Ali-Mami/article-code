@@ -62,20 +62,88 @@ def convert_to_movielens_format(oracle):
     return movielens_df
 
 
-# Returns the RMSE of a model on a specific settings to generate a dataframe
-def evaluate_model(model, df, training_percentage, noise, complete_oracle):
-  num_training_ratings = int(len(df) * training_percentage) # Get the exact number of ratings to take based on the percentage
-  trainset = df.sample(n=num_training_ratings, random_state=42)
-  testset = df.drop(trainset.index)
+
+# Returns a complete dataframe of predicted ratings based on a trained model and an incomplete dataframe
+def predict_all_ratings(model, df):
+    user_ids = df['user id'].unique()
+    movie_ids = df['movie id'].unique()
+    predictions = []
+
+    for user_id in user_ids:
+        for movie_id in movie_ids:
+            prediction = model.predict(user_id, movie_id).est
+            predictions.append({'user id': user_id, 'movie id': movie_id, 'rating': prediction})
+
+    predictions_df = pd.DataFrame(predictions)
+    return predictions_df
+
+
+
+# Trains model on a dataframe
+def train_model(model_name,df):
+    models_dict = {
+        "KNN": KNNBasic(verbose=False),
+        "KNN with Means": KNNWithMeans(verbose=False),
+        "KNN Baseline": KNNBaseline(verbose=False),
+        "NMF": NMF(verbose=False),
+        "SVD (ALS)": SVD(verbose=False),
+        "SVD++": SVDpp(verbose=False),
+        "Co-clustering": CoClustering(verbose=False),
+        "BaselineOnly": BaselineOnly(verbose=False)
+    }
+    # Check if the model exists in the dictionary
+    if model_name in models_dict:
+      # Get the model associated to the it's name
+      model = models_dict[model_name]
+      # Transform the data for the surprise library
+      reader = Reader(rating_scale=(1, 5))
+      data = Dataset.load_from_df(df[['user id', 'movie id', 'rating']], reader)
+      trainset = data.build_full_trainset() # We don't need a test set, we train on the whole dataset
+      # Fit the model on the train set
+      model.fit(trainset)
+      return model
+    # Return None if the model name doesn't exist in the dictionary
+    else:
+      print("Unknown model.")
+      return None
+
+
+
+
+# Returns the rmse of each model on a specific configuration of a complete dataset
+def evaluate_model_on_complete_oracle(model, complete_oracle_df, training_percentage, noise):
+  num_training_ratings = int(len(complete_oracle_df) * training_percentage) # Get the exact number of ratings to take based on the percentage
+  trainset = complete_oracle_df.sample(n=num_training_ratings, random_state=42)
+  testset = complete_oracle_df.drop(trainset.index)
   noisy_trainset = add_gaussian_noise(trainset, noise)
   noisy_trainset['rating'] = noisy_trainset['rating'].round().astype(int)
-  num_models_to_train=5
-  training_percentage=0.9
-  epsilon=0.05
-  models_list = combined_bagging_train(model,noisy_trainset, num_models_to_train, training_percentage, epsilon)
-  predicted_df = predict_all_ratings_combined_baggings(models_list, testset)
-  rmse = calculate_rmse(predicted_df, df) if complete_oracle == 0 else calculate_rmse(predicted_df, testset)
+  model = train_model(model,noisy_trainset)
+  predicted_df = predict_all_ratings(model, testset)
+  rmse = calculate_rmse(predicted_df, complete_oracle_df)
   return rmse
+
+# Returns the rmse of each model on a specific configuration of an incomplete dataset
+def evaluate_model_on_uncomplete_oracle(model, df, training_percentage, noise):
+    num_training_ratings = int(len(df) * training_percentage)
+    trainset = df.sample(n=num_training_ratings, random_state=42)
+    testset = df.drop(trainset.index)
+    noisy_trainset = add_gaussian_noise(trainset, noise)
+    noisy_trainset['rating'] = noisy_trainset['rating'].round().astype(int)
+    model = train_model(model,noisy_trainset)
+    predicted_df = predict_all_ratings(model, testset)
+    rmse = calculate_rmse(predicted_df, testset)
+    return rmse
+
+
+
+def get_model_performance(model, oracle, training_percentage, noise, complete_oracle):
+  if complete_oracle == 0:
+    rmse = evaluate_model_on_uncomplete_oracle(model, oracle, training_percentage, noise)
+    return rmse
+
+  else:
+    rmse = evaluate_model_on_complete_oracle(model, oracle, training_percentage, noise)
+    return rmse
 
 
 
