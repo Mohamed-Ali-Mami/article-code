@@ -111,16 +111,19 @@ def train_model(model_name,df):
 
 
 # Returns the rmse of each model on a specific configuration of a complete dataset
-def evaluate_model_on_complete_oracle(model, complete_oracle_df, training_percentage, noise):
-  num_training_ratings = int(len(complete_oracle_df) * training_percentage) # Get the exact number of ratings to take based on the percentage
-  trainset = complete_oracle_df.sample(n=num_training_ratings, random_state=42)
-  testset = complete_oracle_df.drop(trainset.index)
-  noisy_trainset = add_gaussian_noise(trainset, noise)
-  noisy_trainset['rating'] = noisy_trainset['rating'].round().astype(int)
-  model = train_model(model,noisy_trainset)
-  predicted_df = predict_all_ratings(model, testset)
-  rmse = calculate_rmse(predicted_df, complete_oracle_df)
-  return rmse
+def evaluate_model_on_complete_oracle(model, df, training_percentage, noise):
+    num_training_ratings = int(
+    len(df) * training_percentage)  # Get the exact number of ratings to take based on the percentage
+    trainset = df.sample(n=num_training_ratings, random_state=42)
+    testset = df.drop(trainset.index)
+    noisy_trainset = add_gaussian_noise(trainset, noise)
+    noisy_trainset['rating'] = noisy_trainset['rating'].round().astype(int)
+    num_models_to_train = 5
+    training_percentage = 0.9
+    epsilon = 0.05
+    models_list = combined_bagging_train(model, noisy_trainset, num_models_to_train, training_percentage, epsilon)
+    predicted_df = predict_all_ratings_combined_baggings(models_list, testset)
+    rmse = calculate_rmse(predicted_df, df)
 
 # Returns the rmse of each model on a specific configuration of an incomplete dataset
 def evaluate_model_on_uncomplete_oracle(model, df, training_percentage, noise):
